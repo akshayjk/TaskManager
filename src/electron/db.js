@@ -48,7 +48,8 @@ export function initDB(customPath) {
               urgency INTEGER DEFAULT 5,
               tags TEXT, -- JSON array
               target_date TEXT,
-              push_history TEXT -- JSON array
+              push_history TEXT, -- JSON array
+              subtasks TEXT -- JSON array
           );
           
           CREATE TABLE IF NOT EXISTS settings (
@@ -56,6 +57,13 @@ export function initDB(customPath) {
               value TEXT
           );
         `);
+
+        // Migration for existing tables
+        try {
+            dbInstance.exec("ALTER TABLE tasks ADD COLUMN subtasks TEXT");
+        } catch (e) {
+            // Column already exists
+        }
 
         return true;
     } catch (error) {

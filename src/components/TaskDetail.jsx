@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Bell, Repeat, FileText, Trash2, Star, AlertCircle } from 'lucide-react';
+import { X, Calendar, Bell, Repeat, FileText, Trash2, Star, AlertCircle, Play, Check } from 'lucide-react';
 
 export function TaskDetail({ task, onClose, onUpdate, onDelete }) {
     const [title, setTitle] = useState(task.title);
@@ -100,6 +100,18 @@ export function TaskDetail({ task, onClose, onUpdate, onDelete }) {
                             <Bell size={18} />
                             {task.reminder ? new Date(task.reminder).toLocaleString() : 'Remind me'}
                         </button>
+                        
+                        <button
+                            onClick={() => {
+                                const newStatus = task.status === 'in-progress' ? 'pending' : 'in-progress';
+                                onUpdate(task.id, { status: newStatus });
+                            }}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: '0.25rem', border: '1px solid', borderColor: task.status === 'in-progress' ? '#fbbf24' : 'var(--border-light)', background: task.status === 'in-progress' ? '#fef3c7' : 'transparent', color: task.status === 'in-progress' ? '#d97706' : 'var(--text-secondary)', width: '100%', cursor: 'pointer', textAlign: 'left' }}
+                            onMouseEnter={(e) => { if (task.status !== 'in-progress') e.currentTarget.style.backgroundColor = 'var(--bg-hover)' }}
+                            onMouseLeave={(e) => { if (task.status !== 'in-progress') e.currentTarget.style.backgroundColor = 'transparent' }}>
+                            <Play size={18} />
+                            {task.status === 'in-progress' ? 'In Progress' : 'Mark as In Progress'}
+                        </button>
                     </div>
 
                     {/* Priority & Tags Section */}
@@ -162,7 +174,7 @@ export function TaskDetail({ task, onClose, onUpdate, onDelete }) {
                             style={{
                                 width: '100%', padding: '0.5rem', fontSize: '0.875rem',
                                 backgroundColor: 'transparent', borderBottom: '1px solid var(--border-light)',
-                                borderRadius: 0
+                                borderRadius: 0, color: 'var(--text-primary)'
                             }}
                             placeholder="+ Add custom tag (Press Enter)"
                             onKeyDown={(e) => {
@@ -172,6 +184,83 @@ export function TaskDetail({ task, onClose, onUpdate, onDelete }) {
                                     if (val && !task.tags?.includes(val)) {
                                         const newTags = [...(task.tags || []), val];
                                         onUpdate(task.id, { tags: newTags });
+                                        e.target.value = '';
+                                    }
+                                }
+                            }}
+                        />
+                    </div>
+
+                    {/* Subtasks Section */}
+                    <div style={{ padding: '1rem', borderRadius: '0.25rem', border: '1px solid var(--border-light)', marginBottom: '1.5rem', backgroundColor: 'var(--bg-surface)' }}>
+                        <h3 style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '1rem' }}>Subtasks</h3>
+                        
+                        {/* Subtasks List */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            {task.subtasks?.map((st) => (
+                                <div key={st.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
+                                    <div 
+                                        onClick={() => {
+                                            const updated = task.subtasks.map(s => s.id === st.id ? { ...s, completed: !s.completed } : s);
+                                            // Determine overall task status
+                                            const allCompleted = updated.length > 0 && updated.every(s => s.completed);
+                                            const someCompleted = updated.some(s => s.completed);
+                                            const newStatus = allCompleted ? 'completed' : (someCompleted ? 'in-progress' : task.status === 'completed' ? 'pending' : task.status);
+                                            
+                                            onUpdate(task.id, { 
+                                                subtasks: updated,
+                                                status: newStatus,
+                                                completedAt: newStatus === 'completed' ? new Date().toISOString() : (task.status === 'completed' ? null : task.completedAt)
+                                            });
+                                        }}
+                                        style={{ 
+                                            width: '16px', height: '16px', borderRadius: '50%', border: '1px solid', 
+                                            borderColor: st.completed ? 'var(--brand-primary)' : 'var(--text-placeholder)',
+                                            backgroundColor: st.completed ? 'var(--brand-primary)' : 'transparent',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                                        }}
+                                    >
+                                        {st.completed && <Check size={10} color="white" strokeWidth={3} />}
+                                    </div>
+                                    <span style={{ flex: 1, fontSize: '0.875rem', color: st.completed ? 'var(--text-placeholder)' : 'var(--text-primary)', textDecoration: st.completed ? 'line-through' : 'none' }}>
+                                        {st.title}
+                                    </span>
+                                    <button 
+                                        onClick={() => {
+                                            const updated = task.subtasks.filter(s => s.id !== st.id);
+                                            onUpdate(task.id, { subtasks: updated });
+                                        }}
+                                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: 'var(--text-secondary)' }}
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Add Subtask Input */}
+                        <input
+                            className="fluent-input"
+                            style={{
+                                width: '100%', padding: '0.5rem', fontSize: '0.875rem',
+                                backgroundColor: 'transparent', borderBottom: '1px solid var(--border-light)',
+                                borderRadius: 0, color: 'var(--text-primary)'
+                            }}
+                            placeholder="+ Add subtask (Press Enter)"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const val = e.target.value.trim();
+                                    if (val) {
+                                        const newSt = { id: crypto.randomUUID(), title: val, completed: false };
+                                        const updated = [...(task.subtasks || []), newSt];
+                                        // If this is the first subtask and task is completed, maybe mark pending
+                                        const newStatus = task.status === 'completed' ? 'in-progress' : task.status;
+                                        onUpdate(task.id, { 
+                                            subtasks: updated,
+                                            status: newStatus,
+                                            completedAt: newStatus !== 'completed' ? null : task.completedAt
+                                        });
                                         e.target.value = '';
                                     }
                                 }

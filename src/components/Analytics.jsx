@@ -55,11 +55,11 @@ export function Analytics({ tasks }) {
 
     return (
         <div className="main-content-overlay" style={{ overflowY: 'auto', height: '100%', paddingLeft: '24px', paddingRight: '24px' }}>
-            <header className="py-8" style={{ paddingBottom: '2rem', paddingTop: '2rem' }}>
-                <h2 className="text-3xl font-bold text-brand-primary flex items-center gap-3" style={{ fontSize: '1.875rem', fontWeight: 700, color: 'var(--brand-primary)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <BarChart2 /> Performance Analytics
+            <header className="py-6">
+                <h2 className="text-2xl font-bold text-brand-primary flex items-center gap-2">
+                    <BarChart2 size={24} /> Performance Analytics
                 </h2>
-                <p className="text-[var(--text-secondary)] mt-2">Track your productivity and task health.</p>
+                <p className="text-sm text-gray-500 mt-1">Track your productivity and task health.</p>
             </header>
 
             {/* Weekly Activity Chart */}

@@ -31,11 +31,11 @@ export function Settings({ opacity, setOpacity, isDarkMode, setIsDarkMode, setti
 
     return (
         <div className="main-content-overlay overflow-y-auto" style={{ height: '100%' }}>
-            <header className="py-8">
-                <h2 className="text-3xl font-bold text-brand-primary flex items-center gap-3">
-                    <Sliders /> Settings
+            <header className="py-6">
+                <h2 className="text-2xl font-bold text-brand-primary flex items-center gap-2">
+                    <Sliders size={24} /> Settings
                 </h2>
-                <p className="text-[var(--text-secondary)] mt-2">Manage your application preferences and data.</p>
+                <p className="text-sm text-gray-500 mt-1">Manage your application preferences and data.</p>
             </header>
 
             <div style={{ maxWidth: '42rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
@@ -80,7 +80,10 @@ export function Settings({ opacity, setOpacity, isDarkMode, setIsDarkMode, setti
                         </label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                             <button
-                                onClick={() => setIsDarkMode(false)}
+                                onClick={() => {
+                                    setIsDarkMode(false);
+                                    onUpdateSettings({ isDarkMode: false });
+                                }}
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid', transition: 'all 0.2s', cursor: 'pointer',
                                     backgroundColor: !isDarkMode ? '#eff6ff' : 'transparent',
@@ -91,7 +94,10 @@ export function Settings({ opacity, setOpacity, isDarkMode, setIsDarkMode, setti
                                 <Sun size={18} /> Light
                             </button>
                             <button
-                                onClick={() => setIsDarkMode(true)}
+                                onClick={() => {
+                                    setIsDarkMode(true);
+                                    onUpdateSettings({ isDarkMode: true });
+                                }}
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid', transition: 'all 0.2s', cursor: 'pointer',
                                     backgroundColor: isDarkMode ? '#334155' : 'transparent',
@@ -119,7 +125,11 @@ export function Settings({ opacity, setOpacity, isDarkMode, setIsDarkMode, setti
                             min="0" max="100"
                             value={opacity * 100}
                             style={{ width: '100%', height: '4px', backgroundColor: '#e5e7eb', borderRadius: '8px', appearance: 'none', cursor: 'pointer' }}
-                            onChange={(e) => setOpacity(parseInt(e.target.value) / 100)}
+                            onChange={(e) => {
+                                const val = parseInt(e.target.value) / 100;
+                                setOpacity(val);
+                                onUpdateSettings({ opacity: val });
+                            }}
                         />
                         <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                             Adjust the transparency of the application panels to see more of the background image.

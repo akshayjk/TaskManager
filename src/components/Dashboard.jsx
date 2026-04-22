@@ -31,6 +31,11 @@ export function Dashboard() {
     const [opacity, setOpacity] = useState(0.85);
     const [isDarkMode, setIsDarkMode] = useState(false);
 
+    React.useEffect(() => {
+        if (settings?.opacity !== undefined) setOpacity(settings.opacity);
+        if (settings?.isDarkMode !== undefined) setIsDarkMode(settings.isDarkMode);
+    }, [settings?.opacity, settings?.isDarkMode]);
+
     // Background Layer Style
     // Background Layer Style
     const bgLayerStyle = settings?.backgroundImage
@@ -39,9 +44,13 @@ export function Dashboard() {
 
     // Filter Logic
     const filteredTasks = tasks.filter(task => {
+        if (filter === 'archive') return task.status === 'completed';
+        // For all other regular views, hide completed tasks
+        if (task.status === 'completed') return false;
+
         if (filter === 'important') return task.importance > 7;
         if (filter === 'urgent') return task.urgency > 7;
-        if (filter === 'completed') return task.status === 'completed';
+        
         // 'my-day' & 'planned' pending logic implementation
         return true;
     }).filter(task => {
@@ -136,9 +145,11 @@ export function Dashboard() {
                                     <h2 className="text-2xl font-bold text-brand-primary" style={{ textTransform: 'capitalize' }}>
                                         {filter.replace('-', ' ')}
                                     </h2>
-                                    <p className="text-sm text-gray-500">
-                                        {new Date().toDateString()}
-                                    </p>
+                                    {filter === 'my-day' && (
+                                        <p className="text-sm text-gray-500">
+                                            {new Date().toDateString()}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '6px' }}>
@@ -207,6 +218,7 @@ export function Dashboard() {
                                             completedAt: task.status !== 'completed' ? new Date().toISOString() : null
                                         })}
                                         onToggleImportance={(id) => updateTask(id, { importance: task.importance > 7 ? 1 : 10 })}
+                                        onUpdate={updateTask}
                                     />
                                 ))}
                             </div>

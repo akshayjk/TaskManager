@@ -45,6 +45,7 @@ export function useTasks() {
             pushHistory: [],
             createdAt: new Date().toISOString(),
             tags: [],
+            subtasks: [],
             importance: 5,
             urgency: 5,
             description: '',

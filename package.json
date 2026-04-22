@@ -2,6 +2,8 @@
   "name": "agent-manager",
   "private": true,
   "version": "0.0.0",
+  "description": "AgentManager Personal Task Orchestration System",
+  "author": "Akshay",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",

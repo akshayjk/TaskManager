@@ -96,6 +96,7 @@ ipcMain.handle('db:get-all', () => {
             ...t,
             tags: t.tags ? JSON.parse(t.tags) : [],
             pushHistory: t.push_history ? JSON.parse(t.push_history) : [],
+            subtasks: t.subtasks ? JSON.parse(t.subtasks) : [],
             targetDate: t.target_date,
             createdAt: t.created_at,
             completedAt: t.completed_at
@@ -116,12 +117,13 @@ ipcMain.handle('db:get-all', () => {
 ipcMain.handle('db:add-task', (_, task) => {
     const db = getDB();
     const stmt = db.prepare(`
-        INSERT INTO tasks (id, title, description, status, created_at, tags, importance, urgency)
-        VALUES (@id, @title, @description, @status, @createdAt, @tags, @importance, @urgency)
+        INSERT INTO tasks (id, title, description, status, created_at, tags, importance, urgency, subtasks)
+        VALUES (@id, @title, @description, @status, @createdAt, @tags, @importance, @urgency, @subtasks)
     `);
     const info = stmt.run({
         ...task,
-        tags: JSON.stringify(task.tags || [])
+        tags: JSON.stringify(task.tags || []),
+        subtasks: JSON.stringify(task.subtasks || [])
     });
     return info.lastInsertRowid;
 });
@@ -146,6 +148,7 @@ ipcMain.handle('db:update-task', (_, { id, updates }) => {
     const safeUpdates = { ...updates };
     if (updates.tags) safeUpdates.tags = JSON.stringify(updates.tags);
     if (updates.pushHistory) safeUpdates.pushHistory = JSON.stringify(updates.pushHistory);
+    if (updates.subtasks) safeUpdates.subtasks = JSON.stringify(updates.subtasks);
 
     const db = getDB();
     db.prepare(query).run({ id, ...safeUpdates });

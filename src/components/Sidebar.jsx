@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sun, Star, Calendar, Home, Menu, BarChart2, Moon, Sliders, Zap } from 'lucide-react';
+import { Sun, Star, Calendar, Home, Menu, BarChart2, Moon, Sliders, Zap, Archive } from 'lucide-react';
 
 export function Sidebar({ activeFilter, onSelectFilter }) {
     const [collapsed, setCollapsed] = useState(false);
@@ -10,6 +10,7 @@ export function Sidebar({ activeFilter, onSelectFilter }) {
         { id: 'urgent', label: 'Urgent', icon: Zap, color: '#f59e0b' }, // text-amber-500
         { id: 'planned', label: 'Planned', icon: Calendar, color: '#0891b2' }, // text-cyan-600
         { id: 'all', label: 'Tasks', icon: Home, color: '#2563eb' },           // text-blue-600
+        { id: 'archive', label: 'Archive', icon: Archive, color: '#6b7280' }, // text-gray-500
         { id: 'analytics', label: 'Analytics', icon: BarChart2, color: '#059669' }, // text-emerald-600
     ];
 
