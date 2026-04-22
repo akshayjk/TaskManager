@@ -1,0 +1,344 @@
+import React, { useState, useRef } from 'react';
+import { Plus, Calendar, Bell, Tag, X, Search } from 'lucide-react';
+import { useTasks } from '../hooks/useTasks';
+import { Sidebar } from './Sidebar';
+import { TaskRow } from './TaskRow';
+import { TaskDetail } from './TaskDetail';
+import { Analytics } from './Analytics';
+import { Settings } from './Settings';
+
+export function Dashboard() {
+    const { tasks, stats, settings, addTask, updateTask, updateSettings } = useTasks();
+    const [filter, setFilter] = useState('all');
+    const [selectedTask, setSelectedTask] = useState(null);
+
+    // Search and Filter State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [tagFilter, setTagFilter] = useState('');
+    const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+    // New Task State
+    const [newTaskTitle, setNewTaskTitle] = useState('');
+    const [newTaskDate, setNewTaskDate] = useState(null);
+    const [newTaskReminder, setNewTaskReminder] = useState(null);
+    const [newTaskTags, setNewTaskTags] = useState([]);
+    const [isTagInputVisible, setIsTagInputVisible] = useState(false);
+    const [tagInputValue, setTagInputValue] = useState('');
+
+    const dateInputRef = useRef(null);
+    const reminderInputRef = useRef(null);
+
+    const [opacity, setOpacity] = useState(0.85);
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    // Background Layer Style
+    // Background Layer Style
+    const bgLayerStyle = settings?.backgroundImage
+        ? { backgroundImage: `url(${settings.backgroundImage})` }
+        : { backgroundImage: 'url(/background_image_1.jpg)' }; // Default fallback
+
+    // Filter Logic
+    const filteredTasks = tasks.filter(task => {
+        if (filter === 'important') return task.importance > 7;
+        if (filter === 'urgent') return task.urgency > 7;
+        if (filter === 'completed') return task.status === 'completed';
+        // 'my-day' & 'planned' pending logic implementation
+        return true;
+    }).filter(task => {
+        const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesTag = tagFilter ? (task.tags && task.tags.includes(tagFilter)) : true;
+        return matchesSearch && matchesTag;
+    });
+
+    const allTags = Array.from(new Set(tasks.flatMap(t => t.tags || [])));
+
+    const handleAddTask = (e) => {
+        e.preventDefault();
+        if (!newTaskTitle.trim()) return;
+        addTask({
+            title: newTaskTitle,
+            importance: filter === 'important' ? 8 : 1,
+            urgency: filter === 'urgent' ? 8 : 5,
+            targetDate: newTaskDate,
+            reminder: newTaskReminder,
+            tags: newTaskTags
+        });
+
+        // Reset Logic
+        setNewTaskTitle('');
+        setNewTaskDate(null);
+        setNewTaskReminder(null);
+        setNewTaskTags([]);
+        setIsTagInputVisible(false);
+        setTagInputValue('');
+    };
+
+    const handleTagInputKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const val = tagInputValue.trim();
+            if (val && !newTaskTags.includes(val)) {
+                setNewTaskTags([...newTaskTags, val]);
+                setTagInputValue('');
+            }
+        }
+    };
+
+    return (
+        <>
+            {/* 0. Background Layer (Fixed) */}
+            <div
+                style={{
+                    ...bgLayerStyle,
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 0,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    transition: 'all 0.3s ease'
+                }}
+            />
+
+            {/* App Overlay (Glass effect) */}
+            <div
+                className={`app-layout relative z-[2] ${isDarkMode ? 'dark-mode' : ''}`}
+                style={{
+                    backgroundColor: isDarkMode ? `rgba(30, 30, 30, ${opacity})` : `rgba(255, 255, 255, ${opacity})`
+                }}
+            >
+                {/* 1. Sidebar */}
+                <Sidebar
+                    activeFilter={filter}
+                    onSelectFilter={setFilter}
+                />
+
+                {/* 2. Main Content */}
+                <div className="main-content">
+                    {filter === 'analytics' ? (
+                        <Analytics tasks={tasks} />
+                    ) : filter === 'settings' ? (
+                        <Settings
+                            opacity={opacity}
+                            setOpacity={setOpacity}
+                            isDarkMode={isDarkMode}
+                            setIsDarkMode={setIsDarkMode}
+                            settings={settings}
+                            onUpdateSettings={updateSettings}
+                        />
+                    ) : (
+                        <div className="main-content-overlay">
+                            <header className="py-6" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-brand-primary" style={{ textTransform: 'capitalize' }}>
+                                        {filter.replace('-', ' ')}
+                                    </h2>
+                                    <p className="text-sm text-gray-500">
+                                        {new Date().toDateString()}
+                                    </p>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '6px' }}>
+                                    {isSearchVisible ? (
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <input 
+                                                className="fluent-input" 
+                                                placeholder="Search tasks..." 
+                                                value={searchQuery}
+                                                onChange={e => setSearchQuery(e.target.value)}
+                                                style={{ 
+                                                    fontSize: '14px', padding: '6px 12px', borderRadius: '6px', 
+                                                    border: '1px solid var(--border-light)', background: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)',
+                                                    color: isDarkMode ? 'white' : 'var(--text-primary)',
+                                                    width: '200px'
+                                                }}
+                                                autoFocus
+                                            />
+                                            <select 
+                                                className="fluent-input"
+                                                value={tagFilter}
+                                                onChange={e => setTagFilter(e.target.value)}
+                                                style={{ 
+                                                    fontSize: '14px', padding: '6px 12px', borderRadius: '6px', 
+                                                    border: '1px solid var(--border-light)', background: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)',
+                                                    color: isDarkMode ? 'white' : 'var(--text-primary)'
+                                                }}
+                                            >
+                                                <option value="">All Tags</option>
+                                                {allTags.map(tag => (
+                                                    <option key={tag} value={tag}>{tag}</option>
+                                                ))}
+                                            </select>
+                                            <button 
+                                                onClick={() => { setIsSearchVisible(false); setSearchQuery(''); setTagFilter(''); }} 
+                                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' }}
+                                            >
+                                                <X size={20} className="text-gray-500 hover:text-brand-primary transition-colors" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            onClick={() => setIsSearchVisible(true)} 
+                                            style={{ 
+                                                background: 'transparent', border: 'none', cursor: 'pointer', 
+                                                padding: '8px', borderRadius: '50%', backgroundColor: 'var(--bg-hover)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                            }}
+                                            title="Search and Filter"
+                                        >
+                                            <Search size={20} className="text-brand-primary" />
+                                        </button>
+                                    )}
+                                </div>
+                            </header>
+
+                            <div className="task-list">
+                                {filteredTasks.map(task => (
+                                    <TaskRow
+                                        key={task.id}
+                                        task={task}
+                                        selected={selectedTask?.id === task.id}
+                                        onSelect={setSelectedTask}
+                                        onComplete={(id) => updateTask(id, {
+                                            status: task.status === 'completed' ? 'pending' : 'completed',
+                                            completedAt: task.status !== 'completed' ? new Date().toISOString() : null
+                                        })}
+                                        onToggleImportance={(id) => updateTask(id, { importance: task.importance > 7 ? 1 : 10 })}
+                                    />
+                                ))}
+                            </div>
+
+                            <div className="add-task-bar" style={{ padding: '0.75rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                    <Plus className="text-brand-primary mr-3" />
+                                    <form onSubmit={handleAddTask} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }}>
+                                        <input
+                                            className="fluent-input"
+                                            style={{
+                                                flex: 1,
+                                                color: isDarkMode ? 'white' : 'var(--text-primary)',
+                                                '::placeholder': { color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'inherit' }
+                                            }}
+                                            placeholder="Add a task"
+                                            value={newTaskTitle}
+                                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                                        />
+
+                                        {/* Quick Add Actions - Inline */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            {/* Date Picker */}
+                                            <div style={{ position: 'relative' }}>
+                                                <input
+                                                    type="date"
+                                                    ref={dateInputRef}
+                                                    style={{ position: 'absolute', opacity: 0, bottom: '100%', left: 0, zIndex: -1, width: 0, height: 0 }}
+                                                    onChange={(e) => setNewTaskDate(e.target.value)}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => dateInputRef.current?.showPicker()}
+                                                    style={{ padding: '6px', borderRadius: '4px', border: 'none', background: newTaskDate ? 'var(--bg-hover)' : 'transparent', color: newTaskDate ? 'var(--brand-primary)' : 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                                    title="Set Due Date"
+                                                >
+                                                    <Calendar size={18} />
+                                                </button>
+                                            </div>
+
+                                            {/* Reminder Picker */}
+                                            <div style={{ position: 'relative' }}>
+                                                <input
+                                                    type="datetime-local"
+                                                    ref={reminderInputRef}
+                                                    style={{ position: 'absolute', opacity: 0, bottom: '100%', left: 0, zIndex: -1, width: 0, height: 0 }}
+                                                    onChange={(e) => setNewTaskReminder(e.target.value)}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => reminderInputRef.current?.showPicker()}
+                                                    style={{ padding: '6px', borderRadius: '4px', border: 'none', background: newTaskReminder ? 'var(--bg-hover)' : 'transparent', color: newTaskReminder ? 'var(--brand-primary)' : 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                                    title="Set Reminder"
+                                                >
+                                                    <Bell size={18} />
+                                                </button>
+                                            </div>
+
+                                            {/* Tags Toggle */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsTagInputVisible(!isTagInputVisible)}
+                                                style={{ padding: '6px', borderRadius: '4px', border: 'none', background: newTaskTags.length > 0 ? 'var(--bg-hover)' : 'transparent', color: newTaskTags.length > 0 ? 'var(--brand-primary)' : 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                                title="Add Tags"
+                                            >
+                                                <Tag size={18} />
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                {/* Active Tags & Input Row (appears below if needed) */}
+                                {(newTaskTags.length > 0 || isTagInputVisible || newTaskDate || newTaskReminder) && (
+                                    <div style={{ paddingLeft: '2.5rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', fontSize: '12px' }}>
+                                        {/* Status Text for Date/Time */}
+                                        {newTaskDate && (
+                                            <span style={{ color: 'var(--brand-primary)', fontWeight: 500 }}>
+                                                Due: {new Date(newTaskDate).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                        {newTaskReminder && (
+                                            <span style={{ color: 'var(--brand-primary)', fontWeight: 500 }}>
+                                                Remind: {new Date(newTaskReminder).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        )}
+
+                                        {/* Tags */}
+                                        {newTaskTags.map(tag => (
+                                            <span key={tag} style={{ padding: '2px 8px', borderRadius: '12px', background: 'var(--bg-hover)', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'default' }}>
+                                                #{tag}
+                                                <X size={12} style={{ cursor: 'pointer' }} onClick={() => setNewTaskTags(newTaskTags.filter(t => t !== tag))} />
+                                            </span>
+                                        ))}
+
+                                        {/* Tag Input */}
+                                        {isTagInputVisible && (
+                                            <input
+                                                className="fluent-input"
+                                                style={{
+                                                    fontSize: '12px', padding: '2px 6px', width: '150px',
+                                                    color: isDarkMode ? 'white' : 'var(--text-primary)',
+                                                    border: '1px solid var(--border-light)',
+                                                    background: 'transparent'
+                                                }}
+                                                placeholder="Type tag & Enter..."
+                                                value={tagInputValue}
+                                                onChange={(e) => setTagInputValue(e.target.value)}
+                                                onKeyDown={handleTagInputKeyDown}
+                                                autoFocus
+                                            />
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* 3. Detail Panel - Only show if not in analytics mode */}
+                {selectedTask && filter !== 'analytics' && (
+                    <TaskDetail
+                        task={selectedTask}
+                        onClose={() => setSelectedTask(null)}
+                        onUpdate={updateTask}
+                        onDelete={(id) => {
+                            // Basic delete/archive - status 'deleted' or remove
+                            updateTask(id, { status: 'deleted' }); // soft delete
+                            setSelectedTask(null);
+                        }}
+                    />
+                )}
+            </div>
+        </>
+    );
+}

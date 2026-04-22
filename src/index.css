@@ -1,0 +1,276 @@
+/* Global Reset */
+* {
+    box-sizing: border-box;
+}
+
+/* Fluent Design System (Microsoft To Do Style) */
+:root {
+    /* Core Variables - Light Theme Default */
+    --bg-app: #f3f2f1;
+    --bg-sidebar: rgba(243, 242, 241, 0.5);
+    --bg-surface: rgba(255, 255, 255, 0.7);
+    --bg-surface-solid: #ffffff;
+    --bg-hover: rgba(255, 255, 255, 0.5);
+    --bg-selected: rgba(239, 246, 252, 0.7);
+
+    --text-primary: #252423;
+    --text-secondary: #605e5c;
+    --text-placeholder: #a19f9d;
+
+    --border-light: rgba(0, 0, 0, 0.05);
+
+    --brand-primary: #2b88d8;
+    --brand-hover: #0078d4;
+
+    --shadow-card: 0 1.6px 3.6px 0 rgba(0, 0, 0, .132), 0 0.3px 0.9px 0 rgba(0, 0, 0, .108);
+    --shadow-flyout: 0 6.4px 14.4px 0 rgba(0, 0, 0, .132), 0 1.2px 3.6px 0 rgba(0, 0, 0, .108);
+
+    --radius-sm: 4px;
+    --radius-md: 6px;
+
+    /* Priority Colors */
+    --priority-high: #d93025;
+    --priority-med: #fca130;
+
+    /* Sidebar Width */
+    --sidebar-width: 280px;
+    --detail-width: 360px;
+}
+
+/* Dark Mode Overrides */
+.dark-mode {
+    --bg-app: #11100f;
+    --bg-sidebar: rgba(32, 31, 30, 0.5);
+    --bg-surface: rgba(43, 43, 43, 0.7);
+    --bg-surface-solid: #2b2b2b;
+    --bg-hover: rgba(255, 255, 255, 0.1);
+    --bg-selected: rgba(58, 58, 58, 0.7);
+
+    --text-primary: #ffffff;
+    --text-secondary: #d0d0d0;
+    --text-placeholder: #a19f9d;
+
+    --border-light: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: transparent;
+    /* Changed from var(--bg-app) to allow fixed bg visibility */
+    color: var(--text-primary);
+    /* Enforce global text color */
+    overflow-x: hidden;
+    /* Prevent horizontal scroll from slide-ins */
+    width: 100vw;
+}
+
+/* Common Card Style */
+.card-base {
+    background-color: var(--bg-surface-solid);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s;
+    padding: 1.5rem;
+    /* Ensure consistent 24px padding (user requested min 10px) */
+}
+
+/* Layout Utilities */
+.app-layout {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    /* Dynamic opacity controlled by React state */
+    /* background-color handled inline */
+
+    /* Global Tint to make text readable */
+    backdrop-filter: blur(10px);
+    /* Frosted glass effect */
+    transition: background-color 0.1s;
+    color: var(--text-primary);
+    /* Enforce text color in app layout */
+    overflow: hidden;
+    /* Prevent double scrollbars */
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--bg-sidebar);
+    /* Semi-transparent */
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-light);
+    flex-shrink: 0;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* Transparent to show body background through app-layout tint */
+    background: transparent;
+    overflow: hidden;
+    /* Ensure this container doesn't scroll, forcing children to handle it */
+}
+
+.main-content-overlay {
+    background-color: transparent;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 24px;
+    overflow-y: auto;
+    /* Enable vertical scrolling */
+}
+
+/* .detail-panel removed, moved to Tailwind utility classes in component */
+
+/* Component Styles */
+.nav-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background-color 0.1s;
+}
+
+.nav-item:hover {
+    background-color: var(--bg-hover);
+}
+
+.nav-item.active {
+    background-color: var(--bg-selected);
+    font-weight: 600;
+    border-left: 2px solid var(--brand-primary);
+}
+
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    padding-bottom: 40px;
+}
+
+.task-row {
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-sm);
+    padding: 0 16px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 2px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+}
+
+.task-row:hover {
+    background-color: var(--bg-surface-solid);
+    box-shadow: var(--shadow-card);
+}
+
+.task-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: transparent;
+    transition: all 0.2s;
+}
+
+.task-checkbox:hover {
+    border-color: var(--brand-primary);
+}
+
+.task-checkbox.completed {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: white;
+}
+
+/* Inputs */
+.fluent-input {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    width: 100%;
+}
+
+.fluent-input:focus {
+    outline: none;
+}
+
+.add-task-bar {
+    background: var(--bg-surface-solid);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-card);
+    height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    margin-top: auto;
+    margin-bottom: 24px;
+}
+
+/* Sliders for Urgency/Importance */
+.slider-container {
+    margin-bottom: 16px;
+}
+
+.slider-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+input[type=range] {
+    width: 100%;
+    accent-color: var(--brand-primary);
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+.slide-in-right {
+    animation: slideIn 0.2s ease-out;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c8c6c4;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a6a6a6;
+}
